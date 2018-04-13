@@ -26,16 +26,25 @@
     <table md-table ng-init="orderGrp = 'name'">
         <thead md-head md-order="orderGrp">
         <tr md-row>
-            <th md-column width="30%" md-order-by="name">Name</th>
-            <th md-column width="30%">API Role</th>
-            <th md-column width="30%">Application Role</th>
-            <th md-column width="10%"></th>
+            <th md-column width="22%" md-order-by="name">Name</th>
+            <th md-column width="22%">Group Admin</th>
+            <th md-column width="22%">API Role</th>
+            <th md-column width="22%">Application Role</th>
+            <th md-column width="12%"></th>
         </tr>
         </thead>
         <tbody md-body>
         <tr md-row
             ng-repeat="member in $ctrl.members | orderBy: orderGrp">
             <td md-cell>{{member.displayName}}</td>
+            <td md-cell>
+                <md-checkbox ng-model="member.roles['GROUP']"
+                             ng-true-value="'ADMIN'"
+                             ng-false-value="''"
+                             ng-change="$ctrl.updateRole(member)"
+                             aria-label="Administrator of this group">
+                </md-checkbox>
+            </td>
             <td md-cell>
                 <md-select ng-model="member.roles['API']"
                            aria-label="API Role"

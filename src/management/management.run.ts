@@ -15,7 +15,6 @@
  */
 /* global setInterval:false, clearInterval:false, screen:false */
 import UserService from '../services/user.service';
-import _ = require('lodash');
 
 function runBlock($rootScope, $window, $http, $mdSidenav, $transitions,
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {

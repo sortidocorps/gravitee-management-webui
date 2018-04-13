@@ -52,11 +52,11 @@
             </td>
             <td md-cell ng-click="$event.stopPropagation()">
                 <div layout="row" layout-align="end center">
-                    <span style="padding: 0 20px;">
+                    <span style="padding: 0 20px;" ng-if="group.manageable">
                         <md-tooltip md-direction="top">edit</md-tooltip>
                         <ng-md-icon icon="mode_edit" ng-click="$ctrl.showRenameGroupModal($event, group.id, group.name, group.event_rules)" aria-label="rename-group"></ng-md-icon>
                     </span>
-                    <span>
+                    <span ng-if="group.manageable">
                         <md-tooltip md-direction="top">delete</md-tooltip>
                         <ng-md-icon icon="delete" ng-click="$ctrl.removeGroup($event, group.id, group.name)" aria-label="delete-group"></ng-md-icon>
                     </span>
