@@ -18,7 +18,6 @@ import RoleService from "./role.service";
 import ApplicationService from './applications.service';
 import ApiService from './api.service';
 import _ = require('lodash');
-import {ILocationProvider, ILocationService} from "angular";
 
 class UserService {
   private baseURL: string;
@@ -41,7 +40,8 @@ class UserService {
               private $urlRouter: ng.ui.IUrlRouterService,
               private ApplicationService: ApplicationService,
               private ApiService: ApiService,
-              private $location) {
+              private $location,
+              private $cookies) {
     'ngInject';
     this.baseURL = Constants.baseURL;
     this.searchUsersURL = `${Constants.baseURL}search/users/`;
@@ -61,7 +61,7 @@ class UserService {
     return this.$http.get(this.usersURL + code).then(response => Object.assign(new User(), response.data));
   }
 
-  remove(userId: string): ng.IPromise<User> {
+  remove(userId: string): ng.IPromise<any> {
     return this.$http.delete(this.usersURL + userId);
   }
 
@@ -185,9 +185,10 @@ class UserService {
   }
 
   logout(): ng.IPromise<any> {
-    let that = this;
-    return this.$http.post(`${this.userURL}logout`, {})
-      .then(function() {that.currentUser = new User(); that.isLogout = true;});
+    this.currentUser = new User();
+    this.isLogout = true;
+    this.$cookies.remove('Authorization');
+    return this.$q.resolve();
   }
 
   currentUserPicture(): string {
@@ -204,6 +205,10 @@ class UserService {
 
   save(user): ng.IPromise<any> {
     return this.$http.put(`${this.userURL}`, {username: user.username, picture: user.picture});
+  }
+
+  isUserLoggedIn(): string {
+    return this.$cookies.get('Authorization');
   }
 }
 

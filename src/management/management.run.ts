@@ -17,14 +17,14 @@
 import UserService from '../services/user.service';
 import _ = require('lodash');
 
-function runBlock($rootScope, $window, $http, $mdSidenav, $transitions,
+function runBlock($rootScope, $state, $http, $mdSidenav, $transitions, $window,
                   $timeout, UserService: UserService, Constants, PermissionStrategies) {
   'ngInject';
 
   $transitions.onStart({ to: (state) => state.name !== 'login' && state.name !== 'registration'}, function(trans) {
     let forceLogin = (Constants.authentication && Constants.authentication.forceLogin) || false;
 
-    if (forceLogin &&  ! UserService.isAuthenticated()) {
+    if (forceLogin && !UserService.isAuthenticated()) {
       return trans.router.stateService.target('login');
     }
   });
@@ -44,9 +44,17 @@ function runBlock($rootScope, $window, $http, $mdSidenav, $transitions,
   });
 
   $rootScope.$on('graviteeLogout', function () {
-    //TODO: to delete ? What is this sidenav ?
-    //$mdSidenav('left').close();
-    $window.location.href = $window.location.pathname;
+    UserService.logout().then(
+      () => {
+        $state.go('portal.home');
+        $rootScope.$broadcast('graviteeUserRefresh');
+        $rootScope.$broadcast('graviteeUserCancelScheduledServices');
+        if ((Constants.authentication && Constants.authentication.oauth2.userLogoutEndpoint) || false) {
+          var redirectUri = encodeURIComponent(window.location.origin + (window.location.pathname == '/' ? '' : window.location.pathname));
+          $window.location.href= Constants.authentication.oauth2.userLogoutEndpoint + "?redirect_uri=" + redirectUri;
+        }
+      }
+    );
   });
 
   $rootScope.$watch(function () {

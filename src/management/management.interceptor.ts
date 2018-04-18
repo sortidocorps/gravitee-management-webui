@@ -24,9 +24,7 @@ function interceptorConfig(
   $httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
   $httpProvider.defaults.withCredentials = true;
 
-  var sessionExpired;
-
-  var interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor => ({
+  const interceptorUnauthorized = ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor => ({
     responseError: function (error) {
       if (error.config && !error.config.tryItMode) {
         var unauthorizedError = !error || error.status === 401;
@@ -34,27 +32,19 @@ function interceptorConfig(
 
         var notificationService = ($injector.get('NotificationService') as NotificationService);
         if (unauthorizedError) {
-          if (error.config.headers.Authorization) {
-            errorMessage = 'Wrong user or password';
-          } else {
-            if (!sessionExpired) {
-              sessionExpired = true;
-                // session expired
-                notificationService.showError(error, 'Session expired, redirecting to home...');
-                $injector.get('$timeout')(function () {
-                  $injector.get('$rootScope').$broadcast('graviteeLogout');
-                }, 2000);
-            }
-          }
+          notificationService.showError(error, 'Session expired, redirecting to home...');
+          $injector.get('$timeout')(function () {
+            $injector.get('$rootScope').$broadcast('graviteeLogout');
+          }, 2000);
         } else {
           if (error.status === 500) {
             errorMessage = error.data ? error.data.message : 'Unexpected error';
           } else if (error.status === 503) {
             errorMessage = error.data ? error.data.message : 'Server unavailable';
           }
-        }
-        if (!sessionExpired && error && error.status > 0 && !error.config.silentCall) {
-          notificationService.showError(error, errorMessage);
+          if (error && error.status > 0 && !error.config.silentCall) {
+            notificationService.showError(error, errorMessage);
+          }
         }
       }
 
@@ -62,7 +52,7 @@ function interceptorConfig(
     }
   });
 
-  var interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
+  const interceptorTimeout = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
     return {
       request: function (config) {
         // Use defined HTTP timeout or default value
@@ -83,8 +73,20 @@ function interceptorConfig(
     };
   };
 
+  const interceptorAuthorization = function ($cookies): angular.IHttpInterceptor {
+    return {
+      request: function (config) {
+        if ($cookies.get('Authorization')) {
+          config.headers.Authorization = $cookies.get('Authorization');
+        }
+        return config;
+      }
+    };
+  };
+
 
   if ($httpProvider.interceptors) {
+    $httpProvider.interceptors.push(interceptorAuthorization);
     $httpProvider.interceptors.push(interceptorUnauthorized);
     $httpProvider.interceptors.push(interceptorTimeout);
   }
